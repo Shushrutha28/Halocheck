@@ -5,3 +5,5 @@ evaluation/results_*.json
 __pycache__/
 .env
 .ipynb_checkpoints/
+models/
+evaluation/*.json
