@@ -1,0 +1,205 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HaloCheck v2 Corpus Schema",
+  "description": "Master schema for all note records in the HaloCheck v2 corpus. Every pipeline layer reads from and writes to this schema.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "note_id", "source", "category", "source_text",
+      "clean_summary", "test_summary", "is_injected", "is_pure_ood",
+      "injections", "detections", "hhem_score", "split"
+    ],
+    "properties": {
+
+      "note_id": {
+        "type": "string",
+        "description": "Unique note identifier. Format: {source_prefix}_{index:03d}",
+        "examples": ["mts_001", "pubmed_042", "medqa_007", "statpearls_015"]
+      },
+
+      "source": {
+        "type": "string",
+        "description": "Origin dataset of the source note.",
+        "enum": ["mtsamples", "pubmed", "statpearls", "medqa", "synthetic"]
+      },
+
+      "category": {
+        "type": "string",
+        "description": "Clinical note category.",
+        "enum": [
+          "discharge_summary",
+          "consultation_note",
+          "general_medicine",
+          "emergency",
+          "case_report",
+          "clinical_vignette",
+          "synthetic_l2_ablation"
+        ]
+      },
+
+      "source_text": {
+        "type": "string",
+        "description": "Raw source clinical note text. Ground truth for hallucination detection.",
+        "minLength": 150
+      },
+
+      "clean_summary": {
+        "type": "string",
+        "description": "Faithful LLM-generated summary of source_text. No injections.",
+        "minLength": 50
+      },
+
+      "test_summary": {
+        "type": "string",
+        "description": "Summary evaluated by the pipeline. Equals clean_summary for non-injected notes; contains exactly one injected error for injected notes.",
+        "minLength": 50
+      },
+
+      "is_injected": {
+        "type": "boolean",
+        "description": "True if test_summary contains at least one controlled hallucination injection."
+      },
+
+      "is_pure_ood": {
+        "type": "boolean",
+        "description": "True if this note is in the pure OOD evaluation pool. These notes have exactly one injection of type dosage_unit_swap and NO co-injected in-distribution errors. OOD F1 is computed on these notes only.",
+        "default": false
+      },
+
+      "injections": {
+        "type": "array",
+        "description": "Ground truth injection records. Empty array for non-injected notes.",
+        "items": {
+          "type": "object",
+          "required": ["injection_id", "entity_id", "type", "severity", "original_text", "injected_text", "is_ood"],
+          "properties": {
+            "injection_id": {
+              "type": "string",
+              "description": "Unique injection identifier.",
+              "examples": ["inj_001"]
+            },
+            "entity_id": {
+              "type": "string",
+              "description": "Stable entity identifier used for TP matching in evaluate.py. Derived from injected_value for additive types (diagnosis_fabrication), from original_value for all others. Must use format {note_id}_{normalized_entity_text}.",
+              "examples": ["mts_001_metformin_500mg", "mts_042_type_2_diabetes"]
+            },
+            "type": {
+              "type": "string",
+              "description": "Injection type.",
+              "enum": [
+                "medication_dose_error",
+                "diagnosis_fabrication",
+                "negation_flip",
+                "critical_omission",
+                "timeline_inversion",
+                "lab_value_error",
+                "dosage_unit_swap",
+                "semantic_contradiction",
+                "minor_detail_error"
+              ]
+            },
+            "severity": {
+              "type": "string",
+              "enum": ["Critical", "Moderate", "Minor"]
+            },
+            "original_text": {
+              "type": "string",
+              "description": "Exact text changed FROM. For additive injections (diagnosis_fabrication) this is the inserted phrase. '[removed]' for critical_omission."
+            },
+            "injected_text": {
+              "type": "string",
+              "description": "Exact text changed TO. '[removed]' for critical_omission."
+            },
+            "is_ood": {
+              "type": "boolean",
+              "description": "True for out-of-distribution injection types (dosage_unit_swap)."
+            }
+          }
+        }
+      },
+
+      "detections": {
+        "type": "array",
+        "description": "Pipeline detection output. Populated by layer4_severity.py after deduplication.",
+        "items": {
+          "type": "object",
+          "required": ["detection_id", "entity_id", "detected_by", "type", "flagged_text", "severity", "confidence"],
+          "properties": {
+            "detection_id": {
+              "type": "string",
+              "examples": ["det_0042"]
+            },
+            "entity_id": {
+              "type": "string",
+              "description": "Must use format {note_id}_{normalized_entity_text} — same format as injection entity_id to enable cross-layer deduplication and TP matching.",
+              "examples": ["mts_001_metformin_500mg"]
+            },
+            "detected_by": {
+              "type": "array",
+              "description": "List of layers that flagged this entity. Multi-element after deduplication.",
+              "items": {
+                "type": "string",
+                "enum": ["layer1_ner", "layer2_nli", "layer3_negation"]
+              },
+              "examples": [["layer1_ner"], ["layer1_ner", "layer2_nli"]]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "diagnosis_fabrication",
+                "critical_omission",
+                "negation_flip",
+                "semantic_contradiction",
+                "medication_dose_error",
+                "lab_value_error",
+                "timeline_inversion"
+              ]
+            },
+            "flagged_text": {
+              "type": "string",
+              "description": "The exact text span flagged. For Layer 1 this is the entity string; for Layer 2 this is the full flagged sentence."
+            },
+            "severity": {
+              "type": "string",
+              "enum": ["Critical", "Moderate", "Minor"]
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "description": "Detection confidence. For multi-layer detections, this is the noisy-OR fused score."
+            },
+            "matched_source": {
+              "type": "string",
+              "description": "Layer 2 only: the source sentence that contradicted the flagged summary sentence."
+            }
+          }
+        }
+      },
+
+      "hhem_score": {
+        "type": ["number", "null"],
+        "minimum": 0.0,
+        "maximum": 1.0,
+        "description": "facebook/bart-large-mnli factuality score. 1.0 = fully consistent, 0.0 = hallucinated. Score < 0.5 = baseline flags as hallucination. Null until hhem_baseline.py runs."
+      },
+
+      "split": {
+        "type": "string",
+        "description": "Dataset split assignment. stress = PubMed + StatPearls notes (domain-shift evaluation).",
+        "enum": ["dev", "test", "stress", "synthetic"]
+      },
+
+      "url": {
+        "type": "string",
+        "description": "Source URL (MTSamples or PMC)."
+      },
+
+      "pmc_id": {
+        "type": "string",
+        "description": "PubMed Central article ID (pubmed source notes only)."
+      }
+    }
+  }
+}

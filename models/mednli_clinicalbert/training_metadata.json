@@ -1,0 +1,28 @@
+{
+  "base_model": "emilyalsentzer/Bio_ClinicalBERT",
+  "trained_on": "MedNLI v1.0",
+  "train_size": 11232,
+  "dev_size": 1395,
+  "test_size": 1422,
+  "epochs": 3,
+  "batch_size": 16,
+  "lr": 2e-05,
+  "max_len": 256,
+  "best_dev_acc": 0.8323,
+  "test_acc": 0.8108,
+  "test_per_class": {
+    "entailment": 0.7848,
+    "neutral": 0.7827,
+    "contradiction": 0.865
+  },
+  "label2id": {
+    "entailment": 0,
+    "neutral": 1,
+    "contradiction": 2
+  },
+  "id2label": {
+    "0": "entailment",
+    "1": "neutral",
+    "2": "contradiction"
+  }
+}

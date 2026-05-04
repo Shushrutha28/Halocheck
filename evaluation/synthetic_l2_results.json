@@ -1,0 +1,82 @@
+[
+  {
+    "note_id": "syn_001",
+    "flip": "improved \u2192 deteriorated",
+    "l1": false,
+    "l2": true,
+    "l3": false,
+    "l2_exclusive": true
+  },
+  {
+    "note_id": "syn_002",
+    "flip": "benign \u2192 malignant",
+    "l1": false,
+    "l2": true,
+    "l3": false,
+    "l2_exclusive": true
+  },
+  {
+    "note_id": "syn_003",
+    "flip": "responded well \u2192 failed to respond",
+    "l1": false,
+    "l2": true,
+    "l3": false,
+    "l2_exclusive": true
+  },
+  {
+    "note_id": "syn_004",
+    "flip": "stable \u2192 unstable",
+    "l1": false,
+    "l2": true,
+    "l3": false,
+    "l2_exclusive": true
+  },
+  {
+    "note_id": "syn_005",
+    "flip": "resolved \u2192 persisted",
+    "l1": false,
+    "l2": true,
+    "l3": false,
+    "l2_exclusive": true
+  },
+  {
+    "note_id": "syn_006",
+    "flip": "negative \u2192 positive",
+    "l1": true,
+    "l2": true,
+    "l3": true,
+    "l2_exclusive": false
+  },
+  {
+    "note_id": "syn_007",
+    "flip": "decreased \u2192 increased",
+    "l1": false,
+    "l2": true,
+    "l3": false,
+    "l2_exclusive": true
+  },
+  {
+    "note_id": "syn_008",
+    "flip": "controlled \u2192 uncontrolled",
+    "l1": false,
+    "l2": true,
+    "l3": false,
+    "l2_exclusive": true
+  },
+  {
+    "note_id": "syn_009",
+    "flip": "acute \u2192 chronic",
+    "l1": false,
+    "l2": false,
+    "l3": false,
+    "l2_exclusive": false
+  },
+  {
+    "note_id": "syn_010",
+    "flip": "tolerated well \u2192 not tolerated",
+    "l1": false,
+    "l2": true,
+    "l3": false,
+    "l2_exclusive": true
+  }
+]
